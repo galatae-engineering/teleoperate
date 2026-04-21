@@ -5,5 +5,5 @@ pip install pyserial
 pip install opencv-python
 
 LAUNCH:
-cd ~/git/teleoperate && source venv/bin/activate && sudo python main.py
+cd ~/git/teleoperate && source venv/bin/activate && python main.py
 ssh galatae@192.168.0.110

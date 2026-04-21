@@ -3,8 +3,13 @@ sys.path.append('../galatae-api/')
 
 import numpy as np
 import cv2 as cv
+from threading import Thread
+from robot import Robot
 
-def main():
+r=Robot(False)
+
+
+def show_video():
   cap = cv.VideoCapture(0)
   if not cap.isOpened():
       print("Cannot open camera")
@@ -27,6 +32,27 @@ def main():
   # When everything done, release the capture
   cap.release()
   cv.destroyAllWindows()
+
+def print_serial_messages():
+  while(True):
+    print(r._wait_for_message())
+
+def main():
+  thread1=Thread(target=print_serial_messages)
+  thread1.start()
+  thread2=Thread(target=show_video)
+  thread2.start()
+  
+  try:
+    while(True):
+      message=input()
+      r.send_message(message)
+  except:
+    print(traceback.format_exc())
+    
+  r.go_to_foetus_pos()
+  r.disable_motors()
+
 
 if __name__ == "__main__":
   main()
