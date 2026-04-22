@@ -7,6 +7,7 @@ from threading import Thread
 from robot import Robot
 import keyboard
 import math
+import time
 
 r=Robot(False)
 
@@ -29,9 +30,11 @@ def show_video():
   cap.release()
   cv.destroyAllWindows()
 
-def print_serial_messages():
-  while(True):
-    print(r._wait_for_message())
+def update_key_pressed():
+   while(True):
+      event = keyboard.read_event()
+      if event.event_type == keyboard.KEY_DOWN and event.name in ["down","up","right","left"]:
+        key_index=["down","up","right","left"].index(event.name)
 
 def main():
   #thread1=Thread(target=print_serial_messages)
@@ -46,7 +49,9 @@ def main():
 
   key=""
   while(key!="esc"):
+    t=time.time()
     key=keyboard.read_key()
+    print(time.time()-t)
     #print(key)
     accepted_keys=["down","up","right","left"]
     if key in accepted_keys:

@@ -6,5 +6,5 @@ pip install opencv-python
 pip install keyboard
 
 LAUNCH:
-sudo ~/git/teleoperate/venv/bin/python main.py
+cd ~/git/teleoperate && source venv/bin/activate && sudo venv/bin/python main.py
 ssh -X galatae@192.168.0.110
