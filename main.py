@@ -8,8 +8,9 @@ from robot import Robot
 import keyboard
 import math
 import time
+import traceback
 
-r=Robot(False)
+keys_state=[False,False,False,False,False]
 
 def show_video():
   cap = cv.VideoCapture(0)
@@ -30,40 +31,56 @@ def show_video():
   cap.release()
   cv.destroyAllWindows()
 
-def update_key_pressed():
-   while(True):
-      event = keyboard.read_event()
-      if event.event_type == keyboard.KEY_DOWN and event.name in ["down","up","right","left"]:
-        key_index=["down","up","right","left"].index(event.name)
+def update_keys_state():
+  key_names=["left","right","up","down","esc"]
+  
+  while(True):
+    event = keyboard.read_event()
+    if event.name in key_names:
+      key_index=key_names.index(event.name)
+      keys_state[key_index]=event.event_type == keyboard.KEY_DOWN
+    #time.sleep(0.01)
+    print(keys_state)
+
+def get_direction_from_keys(key_pos,key_neg):
+  dir=0
+  if(key_pos and not key_neg):
+    dir=1
+  elif(key_neg and not key_pos):
+    dir=-1
+  return dir
 
 def main():
-  #thread1=Thread(target=print_serial_messages)
-  #thread1.start()
-  #thread2=Thread(target=show_video)
-  #thread2.start()
+  #video_thread=Thread(target=show_video)
+  #video_thread.start()
+  keys_thread=Thread(target=update_keys_state)
   default_speed=50
+  r=Robot(False)
+  pose_key_indices=[[3,2],[1,0]]
+
+  keys_thread.start()
   r.reset_and_home_joints()
   r.set_joint_speed(default_speed)
   r.go_to_pose([400,0,150,180,0])
   r.set_joint_speed(20)
-
-  key=""
-  while(key!="esc"):
-    t=time.time()
-    key=keyboard.read_key()
-    print(time.time()-t)
-    #print(key)
-    accepted_keys=["down","up","right","left"]
-    if key in accepted_keys:
-      dir_number=["down","up","right","left"].index(key)
+  
+  try:
+    while(not keys_state[4]):
       pose=[0,0,0,0,0]
-      pose[math.floor(dir_number/2)]=[1,-1][dir_number%2]*5
-      #print(pose)
-      r.jog(pose)
+      for i in range(2):
+        pose[i]=10*get_direction_from_keys(keys_state[pose_key_indices[i][0]],keys_state[pose_key_indices[i][1]])
+      if pose != [0,0,0,0,0]:
+        #print(pose)
+        r.jog(pose)
+      time.sleep(0.01)
+  except:
+    print(traceback.format_exc())
 
+  keys_thread.stop()
   r.set_joint_speed(default_speed)
   r.go_to_foetus_pos()
   r.disable_motors()
 
 if __name__ == "__main__":
   main()
+  #test()
