@@ -5,13 +5,13 @@ import numpy as np
 import cv2 as cv
 from threading import Thread
 from robot import Robot
-import keyboard
+#import keyboard
 import math
 import time
 import traceback
 import curses
 
-screen = curses.initscr()
+#screen = curses.initscr()
 keyboard_state=[0,0,0,0,0]
 
 def show_video():
@@ -52,6 +52,7 @@ def main():
   video_thread=Thread(target=show_video)
   video_thread.start()
   
+  """
   curses.noecho()
   curses.cbreak()
   screen.keypad(True)
@@ -91,7 +92,7 @@ def main():
   r.set_joint_speed(default_speed)
   r.go_to_foetus_pos()
   r.disable_motors()
-
+  """
 if __name__ == "__main__":
   main()
   #test()
