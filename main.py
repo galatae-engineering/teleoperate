@@ -58,37 +58,39 @@ def main():
 
   keys_thread=Thread(target=update_keys_state)
   default_speed=50
-  #r=Robot(False)
+  #
   pose_key_indices=[[3,2],[1,0]]
 
   keys_thread.start()
-  """
+  
+  r=Robot(False)
   r.reset_and_home_joints()
   r.set_joint_speed(default_speed)
   r.go_to_pose([400,0,150,180,0])
   r.set_joint_speed(20)
-  """
-  print(keyboard_state)
+
+  current_state=keyboard_state.copy()
+
   try:
-    while(not keyboard_state[4]):
+    while(not current_state[4]):
       pose=[0,0,0,0,0]
       for i in range(2):
-        pose[i]=10*get_direction_from_keys(keyboard_state[pose_key_indices[i][0]],keyboard_state[pose_key_indices[i][1]])
+        pose[i]=10*get_direction_from_keys(current_state[pose_key_indices[i][0]],current_state[pose_key_indices[i][1]])
+      
       if pose != [0,0,0,0,0]:
-        print(pose)
-        #r.jog(pose)
+        #print(pose)
+        r.jog(pose)
         for i in range(len(keyboard_state)):
           keyboard_state[i]=0
 
-      time.sleep(0.01)
+      current_state=keyboard_state.copy()
   except:
     print(traceback.format_exc())
 
-  """
+
   r.set_joint_speed(default_speed)
   r.go_to_foetus_pos()
   r.disable_motors()
-  """
 
 if __name__ == "__main__":
   main()
