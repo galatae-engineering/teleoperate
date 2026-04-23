@@ -9,8 +9,10 @@ import keyboard
 import math
 import time
 import traceback
+import curses
 
-keys_state=[False,False,False,False,False]
+screen = curses.initscr()
+keyboard_state=[0,0,0,0,0]
 
 def show_video():
   cap = cv.VideoCapture(0)
@@ -32,15 +34,11 @@ def show_video():
   cv.destroyAllWindows()
 
 def update_keys_state():
-  key_names=["left","right","up","down","esc"]
-  
+  keyboard_numbers=[260,261,259,258,27]
   while(True):
-    event = keyboard.read_event()
-    if event.name in key_names:
-      key_index=key_names.index(event.name)
-      keys_state[key_index]=event.event_type == keyboard.KEY_DOWN
-    #time.sleep(0.01)
-    print(keys_state)
+    char = screen.getch()
+    if char in keyboard_numbers:
+        keyboard_state[keyboard_numbers.index(char)]=1
 
 def get_direction_from_keys(key_pos,key_neg):
   dir=0
@@ -53,33 +51,44 @@ def get_direction_from_keys(key_pos,key_neg):
 def main():
   #video_thread=Thread(target=show_video)
   #video_thread.start()
+  
+  curses.noecho()
+  curses.cbreak()
+  screen.keypad(True)
+
   keys_thread=Thread(target=update_keys_state)
   default_speed=50
-  r=Robot(False)
+  #r=Robot(False)
   pose_key_indices=[[3,2],[1,0]]
 
   keys_thread.start()
+  """
   r.reset_and_home_joints()
   r.set_joint_speed(default_speed)
   r.go_to_pose([400,0,150,180,0])
   r.set_joint_speed(20)
-  
+  """
+  print(keyboard_state)
   try:
-    while(not keys_state[4]):
+    while(not keyboard_state[4]):
       pose=[0,0,0,0,0]
       for i in range(2):
-        pose[i]=10*get_direction_from_keys(keys_state[pose_key_indices[i][0]],keys_state[pose_key_indices[i][1]])
+        pose[i]=10*get_direction_from_keys(keyboard_state[pose_key_indices[i][0]],keyboard_state[pose_key_indices[i][1]])
       if pose != [0,0,0,0,0]:
-        #print(pose)
-        r.jog(pose)
+        print(pose)
+        #r.jog(pose)
+        for i in range(len(keyboard_state)):
+          keyboard_state[i]=0
+
       time.sleep(0.01)
   except:
     print(traceback.format_exc())
 
-  keys_thread.stop()
+  """
   r.set_joint_speed(default_speed)
   r.go_to_foetus_pos()
   r.disable_motors()
+  """
 
 if __name__ == "__main__":
   main()
