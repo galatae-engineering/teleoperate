@@ -23,7 +23,7 @@ def show_video():
       if not ret:
           print("Can't receive frame (stream end?). Exiting ...")
           break
-      gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+      gray = cv.cvtColor(frame)
       cv.imshow('frame', gray)
       if cv.waitKey(1) == ord('q'):
           break
