@@ -23,8 +23,8 @@ def show_video():
       if not ret:
           print("Can't receive frame (stream end?). Exiting ...")
           break
-      gray = cv.cvtColor(frame)
-      cv.imshow('frame', gray)
+      #gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+      cv.imshow('frame', frame)
       if cv.waitKey(1) == ord('q'):
           break
 
@@ -40,7 +40,7 @@ def update_keys_state():
       key_index=key_names.index(event.name)
       keys_state[key_index]=event.event_type == keyboard.KEY_DOWN
     #time.sleep(0.01)
-    print(keys_state)
+    #print(keys_state)
 
 def get_direction_from_keys(key_pos,key_neg):
   dir=0
