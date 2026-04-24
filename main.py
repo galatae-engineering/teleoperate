@@ -11,7 +11,7 @@ import time
 import traceback
 import curses
 
-#screen = curses.initscr()
+screen = curses.initscr()
 keyboard_state=[0,0,0,0,0]
 
 def show_video():
@@ -52,14 +52,13 @@ def main():
   video_thread=Thread(target=show_video)
   video_thread.start()
   
-  """
   curses.noecho()
   curses.cbreak()
   screen.keypad(True)
 
   keys_thread=Thread(target=update_keys_state)
   default_speed=50
-  #
+  
   pose_key_indices=[[3,2],[1,0]]
 
   keys_thread.start()
@@ -92,7 +91,7 @@ def main():
   r.set_joint_speed(default_speed)
   r.go_to_foetus_pos()
   r.disable_motors()
-  """
+
 if __name__ == "__main__":
   main()
   #test()
