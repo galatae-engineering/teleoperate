@@ -1,0 +1,46 @@
+#:kivy 1.0.9
+
+<FourButtons>
+  cols: 3
+  always_release:True
+  Label
+  DirButton
+    text:root.names[0]
+  Label
+  DirButton
+    text:root.names[1]
+  Label
+  DirButton
+    text:root.names[2]
+  Label
+  DirButton
+    text:root.names[3]
+
+<TwoButtons>
+  cols: 1
+  padding:[50,0,50,0]
+  DirButton
+    text:root.names[0]
+  Label
+  DirButton
+    text:root.names[1]
+
+<Teleoperate>:
+  cols: 1
+  spacing:[0,10]
+  Camera:
+    play: True
+    size_hint_y: 0.7
+
+  GridLayout:
+    size_hint_y: 0.3
+    cols:3
+    FourButtons:
+      names:["forward","left","right","backward"]
+    TwoButtons:
+      width:10
+      names:["up","down"]
+    FourButtons:
+      names:["pitch +","roll +","roll -","pitch -"]
+
+    
