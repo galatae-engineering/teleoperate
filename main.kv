@@ -2,30 +2,31 @@
 
 <FourButtons>
   cols: 3
-  always_release:True
   Label
   DirButton
-    text:root.names[0]
+    id:root.names[0]
   Label
   DirButton
-    text:root.names[1]
+    id:root.names[1]
   Label
   DirButton
-    text:root.names[2]
+    id:root.names[2]
   Label
   DirButton
-    text:root.names[3]
+    id:root.names[3]
 
 <TwoButtons>
   cols: 1
   padding:[50,0,50,0]
   DirButton
+    id:root.names[0]
     text:root.names[0]
   Label
   DirButton
+    id:root.names[1]
     text:root.names[1]
 
-<Teleoperate>:
+<Window>:
   cols: 1
   spacing:[0,10]
   Camera:

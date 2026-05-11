@@ -12,6 +12,7 @@ from kivy.properties import NumericProperty, StringProperty, ListProperty
 from kivy.clock import Clock
 from threading import Thread
 import time
+from robot_control import *
 
 buttons_state=[False,False,False,False,False,False,False,False,False,False]
 window_is_open=True
@@ -31,49 +32,21 @@ class DirButton(Button):
 
 class FourButtons(GridLayout):
   names = ListProperty(["","","",""])
+  for name in names:
+    Label()
+    DirButton(Button)
   pass
 
 class TwoButtons(GridLayout):
   names = ListProperty(["",""])
   pass
 
-class Teleoperate(GridLayout):
+class Window(GridLayout):
   pass
-
-def get_direction_from_buttons(button_pos,button_neg):
-  dir=button_pos != button_neg
-  
-  if dir:
-    dir=button_pos*2-1
-
-  return dir
-
-def move_robot_if_necessary(r):
-  pose=[0,0,0,0,0]
-  pose_buttons_indices=[[1,0],[3,2],[4,5],[6,7],[8,9]]
-
-  for i in range(len(pose)):
-    pose[i]=1*get_direction_from_buttons(buttons_state[pose_buttons_indices[i][0]],buttons_state[pose_buttons_indices[i][1]])
-  if pose != [0,0,0,0,0]:
-    r.jog(pose)
-
-def control_robot():
-  global window_is_open
-  r=Robot()
-  r.reset_and_home_joints()
-  r.set_joint_speed(50)
-  r.go_to_pose([400,0,150,180,0])
-
-  while(window_is_open):
-    move_robot_if_necessary(r)
-    time.sleep(0.001)
-  
-  r.go_to_foetus_pos()
-  r.disable_motors()
 
 class MainApp(App):
   def build(self):
-    return Teleoperate()
+    return Window()
 
 def main():
   global window_is_open
