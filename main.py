@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../galatae-api/')
-#from robot import Robot
+from robot import Robot
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
@@ -30,7 +30,7 @@ def get_direction_from_buttons(button_pos,button_neg):
 
 class MainApp(App):
   def build(self):   
-    #Clock.schedule_once(self.move_robot_if_necessary,0)
+    Clock.schedule_once(self.move_robot_if_necessary,0)
 
     main_box=BoxLayout(orientation="vertical")
     main_box.add_widget(Camera(play=True))
@@ -61,8 +61,8 @@ class MainApp(App):
   def move_robot_if_necessary(self,dt):
     global r
 
-    for i in range(len(self.buttons)):
-      self.buttons_state[i]=self.buttons[i].state != "normal"
+    for i in range(len(self.button_widgets)):
+      self.buttons_state[i]=self.button_widgets[i].state != "normal"
 
     pose=[0,0,0,0,0]
     pose_buttons_indices=[[1,0],[3,2],[4,5],[6,7],[8,9]]
@@ -77,16 +77,14 @@ class MainApp(App):
 def main():
   global r
 
-  """
   r=Robot()
   r.reset_and_home_joints()
   r.set_joint_speed(50)
   r.go_to_pose([400,0,150,180,0])
-  """
   MainApp().run()
-  """
+
   r.go_to_foetus_pos()
   r.disable_motors()
-  """
+
 if __name__ == '__main__':
   main()
