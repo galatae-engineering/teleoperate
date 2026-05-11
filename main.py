@@ -10,35 +10,15 @@ from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, StringProperty, ListProperty
 from kivy.clock import Clock
-from threading import Thread
-import time
+from kivy.uix.camera import Camera
 
-buttons_state=[False,False,False,False,False,False,False,False,False,False]
-window_is_open=True
+r=None
 
-class DirButton(Button):
-  def change_buttons_state(self,is_button_pressed):
-    global buttons_state
-    index=["forward","backward","left","right","up","down","pitch +","pitch -","roll +","roll -"].index(self.text)
-    buttons_state[index]=is_button_pressed
-    print(is_button_pressed)
-
-  def on_press(self):
-    self.change_buttons_state(True)
-    
-  def on_release(self):
-    self.change_buttons_state(False)
-
-class FourButtons(GridLayout):
-  names = ListProperty(["","","",""])
-  pass
-
-class TwoButtons(GridLayout):
-  names = ListProperty(["",""])
-  pass
-
-class Teleoperate(GridLayout):
-  pass
+def init_array(N,v):
+  array=[]
+  for i in range(N):
+    array.append(v)
+  return array
 
 def get_direction_from_buttons(button_pos,button_neg):
   dir=button_pos != button_neg
@@ -48,40 +28,53 @@ def get_direction_from_buttons(button_pos,button_neg):
 
   return dir
 
-def move_robot_if_necessary(r):
-  pose=[0,0,0,0,0]
-  pose_buttons_indices=[[1,0],[3,2],[4,5],[6,7],[8,9]]
+class MainApp(App):
+  def build(self):   
+    Clock.schedule_once(self.move_robot_if_necessary,0)
 
-  for i in range(len(pose)):
-    pose[i]=1*get_direction_from_buttons(buttons_state[pose_buttons_indices[i][0]],buttons_state[pose_buttons_indices[i][1]])
-  if pose != [0,0,0,0,0]:
-    r.jog(pose)
+    main_box=BoxLayout(orientation="vertical")
+    main_box.add_widget(Camera(play=True))
+    
+    buttons_grid = GridLayout(cols=3)
+    button_names=["forward","backward","left","right","up","down","pitch +","pitch -","roll +","roll -"]
+    self.buttons_state=init_array(len(button_names),False)
+    self.buttons=[]
 
-def control_robot():
-  global window_is_open
+    for i in range(len(button_names)):
+      button=Button(text=button_names[i])
+      buttons_grid.add_widget(button)
+      self.buttons.append(button)
+
+    main_box.add_widget(buttons_grid)
+
+    return main_box
+
+  def move_robot_if_necessary(self,dt):
+    global r
+
+    for i in range(len(self.buttons)):
+      self.buttons_state[i]=self.buttons[i].state is not "normal"
+
+    pose=[0,0,0,0,0]
+    pose_buttons_indices=[[1,0],[3,2],[4,5],[6,7],[8,9]]
+
+    for i in range(len(pose)):
+      pose[i]=1*get_direction_from_buttons(self.buttons_state[pose_buttons_indices[i][0]],self.buttons_state[pose_buttons_indices[i][1]])
+    if pose != [0,0,0,0,0]:
+      r.jog(pose)
+
+    Clock.schedule_once(self.move_robot_if_necessary,0.001)
+
+def main():
+  global r
+
   r=Robot()
   r.reset_and_home_joints()
   r.set_joint_speed(50)
   r.go_to_pose([400,0,150,180,0])
-
-  while(window_is_open):
-    move_robot_if_necessary(r)
-    time.sleep(0.001)
-  
+  MainApp().run()
   r.go_to_foetus_pos()
   r.disable_motors()
 
-class MainApp(App):
-  def build(self):
-    return Teleoperate()
-
-def main():
-  global window_is_open
-
-  thread=Thread(target=control_robot)
-  thread.start()
-  MainApp().run()
-  window_is_open=False
-
-if __name__ == "__main__":
+if __name__ == '__main__':
   main()
