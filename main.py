@@ -78,7 +78,8 @@ def main():
   global r
 
   r=Robot()
-  r.reset_and_home_joints()
+  r.reset()
+  #r.calibrate()
   r.set_joint_speed(50)
   r.go_to_pose([400,0,150,180,0])
   MainApp().run()
