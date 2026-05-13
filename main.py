@@ -29,9 +29,23 @@ def get_direction_from_buttons(button_pos,button_neg):
   return dir
 
 class MainApp(App):
-  def build(self):   
-    Clock.schedule_once(self.move_robot_if_necessary,0)
+  def move_robot_if_necessary(self,dt):
+    global r
 
+    for i in range(len(self.button_widgets)):
+      self.buttons_state[i]=self.button_widgets[i].state != "normal"
+
+    pose=[0,0,0,0,0]
+    pose_buttons_indices=[[1,0],[3,2],[4,5],[6,7],[8,9]]
+
+    for i in range(len(pose)):
+      pose[i]=1*get_direction_from_buttons(self.buttons_state[pose_buttons_indices[i][0]],self.buttons_state[pose_buttons_indices[i][1]])
+    if pose != [0,0,0,0,0]:
+      r.jog(pose)
+
+    Clock.schedule_once(self.move_robot_if_necessary,0.001)
+
+  def ui(self):
     main_box=BoxLayout(orientation="vertical")
     main_box.add_widget(Camera(play=True))
     
@@ -58,21 +72,9 @@ class MainApp(App):
 
     return main_box
 
-  def move_robot_if_necessary(self,dt):
-    global r
-
-    for i in range(len(self.button_widgets)):
-      self.buttons_state[i]=self.button_widgets[i].state != "normal"
-
-    pose=[0,0,0,0,0]
-    pose_buttons_indices=[[1,0],[3,2],[4,5],[6,7],[8,9]]
-
-    for i in range(len(pose)):
-      pose[i]=1*get_direction_from_buttons(self.buttons_state[pose_buttons_indices[i][0]],self.buttons_state[pose_buttons_indices[i][1]])
-    if pose != [0,0,0,0,0]:
-      r.jog(pose)
-
-    Clock.schedule_once(self.move_robot_if_necessary,0.001)
+  def build(self):   
+    Clock.schedule_once(self.move_robot_if_necessary,0)
+    return self.ui()
 
 def main():
   global r
