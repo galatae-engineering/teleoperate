@@ -12,11 +12,21 @@ from kivy.properties import NumericProperty, StringProperty, ListProperty
 from kivy.clock import Clock
 from kivy.uix.camera import Camera
 from kivy.core.window import Window
+import RPi.GPIO as GPIO
 
 r=None
+
 joystick_axes_ids=[1,0,4]
 joystick_buttons_ids=[13,14,15,16]
 joystick_state=[0]*(len(joystick_axes_ids)+len(joystick_buttons_ids))
+
+def set_limits(value,limits):
+  if limits != None:
+    if len(limits)==1:
+      limits=[-limits[0],limits[0]]
+    value=min(max(limits[0],value),limits[1])
+
+  return value
 
 def get_pose_from_joystick_state():
   pose_length=5
@@ -53,17 +63,26 @@ class MainApp(App):
   def move_robot_if_necessary(self,dt):
     global r
     global joystick_state    
+    pose_limits=[None,None,None,None,[10]]
 
     if joystick_state != [0]*(len(joystick_axes_ids)+len(joystick_buttons_ids)):
       pose=get_pose_from_joystick_state()
     else:
       pose=self.get_pose_from_buttons()
 
+    print(pose)
+
     if pose != [0,0,0,0,0]:
       r.jog(pose)
 
     Clock.schedule_once(self.move_robot_if_necessary,0)
 
+  def start_pump(self,instance):
+    GPIO.output(self.pump_pin,GPIO.HIGH)
+
+  def stop_pump(self,instance):
+    GPIO.output(self.pump_pin,GPIO.LOW)
+    
   def ui(self):
     root=BoxLayout(orientation="vertical")
     try:
@@ -71,11 +90,15 @@ class MainApp(App):
     except:
       root.add_widget(Label(text="Camera not detected."))
     
-    button_names=["forward","backward","left","right","up","down","pitch +","pitch -","roll +","roll -"]    
+    button_names=["forward","backward","left","right","up","down","pitch +","pitch -","roll +","roll -","start pump","stop pump"]    
     self.button_widgets=[]
     for i in range(len(button_names)):
       self.button_widgets.append(Button(text=button_names[i]))
-    buttons_grid_layout=[[None,0,None,None,4,None,None,7,None],[2,None,3,None,None,None,8,None,9],[None,1,None,None,5,None,None,6,None]]
+    
+    self.button_widgets[10].bind(on_press=self.start_pump)
+    self.button_widgets[11].bind(on_press=self.stop_pump)
+    
+    buttons_grid_layout=[[None,0,None,None,4,None,None,7,None,None,10],[2,None,3,None,None,None,8,None,9,None,None],[None,1,None,None,5,None,None,6,None,None,11]]
     buttons_grid_widget = GridLayout(cols=len(buttons_grid_layout[0]))
 
     for i in range(len(buttons_grid_layout)):
@@ -93,7 +116,11 @@ class MainApp(App):
 
     return root
 
-  def build(self):   
+  def build(self):
+    self.pump_pin=5
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(self.pump_pin,GPIO.OUT)
+    GPIO.output(self.pump_pin,GPIO.LOW)
     Clock.schedule_once(self.move_robot_if_necessary,0)
     return self.ui()
 
