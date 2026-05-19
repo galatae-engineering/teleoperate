@@ -59,15 +59,17 @@ class MainApp(App):
     else:
       pose=self.get_pose_from_buttons()
 
-
     if pose != [0,0,0,0,0]:
       r.jog(pose)
 
     Clock.schedule_once(self.move_robot_if_necessary,0)
 
   def ui(self):
-    main_box=BoxLayout(orientation="vertical")
-    main_box.add_widget(Camera(play=True))
+    root=BoxLayout(orientation="vertical")
+    try:
+      root.add_widget(Camera(play=True))
+    except:
+      root.add_widget(Label(text="Camera not detected."))
     
     button_names=["forward","backward","left","right","up","down","pitch +","pitch -","roll +","roll -"]    
     self.button_widgets=[]
@@ -87,9 +89,9 @@ class MainApp(App):
           pass 
         buttons_grid_widget.add_widget(widget)
         
-    main_box.add_widget(buttons_grid_widget)
+    root.add_widget(buttons_grid_widget)
 
-    return main_box
+    return root
 
   def build(self):   
     Clock.schedule_once(self.move_robot_if_necessary,0)
