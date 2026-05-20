@@ -77,8 +77,6 @@ class MainApp(App):
     else:
       pose=self.get_pose_from_buttons()
 
-    print(pose)
-
     if pose != [0,0,0,0,0]:
       r.jog(pose)
 
