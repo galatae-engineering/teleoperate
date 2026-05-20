@@ -19,7 +19,14 @@ r=None
 joystick_axes_ids=[1,0,4]
 joystick_buttons_ids=[13,14,15,16]
 joystick_state=[0]*(len(joystick_axes_ids)+len(joystick_buttons_ids))
+pump_pin=5
 
+def start_pump(instance):
+  GPIO.output(pump_pin,GPIO.HIGH)
+
+def stop_pump(instance):
+  GPIO.output(pump_pin,GPIO.LOW)
+  
 def set_limits(value,limits):
   if limits != None:
     if len(limits)==1:
@@ -76,12 +83,6 @@ class MainApp(App):
       r.jog(pose)
 
     Clock.schedule_once(self.move_robot_if_necessary,0)
-
-  def start_pump(self,instance):
-    GPIO.output(self.pump_pin,GPIO.HIGH)
-
-  def stop_pump(self,instance):
-    GPIO.output(self.pump_pin,GPIO.LOW)
     
   def ui(self):
     root=BoxLayout(orientation="vertical")
@@ -95,8 +96,8 @@ class MainApp(App):
     for i in range(len(button_names)):
       self.button_widgets.append(Button(text=button_names[i]))
     
-    self.button_widgets[10].bind(on_press=self.start_pump)
-    self.button_widgets[11].bind(on_press=self.stop_pump)
+    self.button_widgets[10].bind(on_press=start_pump)
+    self.button_widgets[11].bind(on_press=stop_pump)
     
     buttons_grid_layout=[[None,0,None,None,4,None,None,7,None,None,10],[2,None,3,None,None,None,8,None,9,None,None],[None,1,None,None,5,None,None,6,None,None,11]]
     buttons_grid_widget = GridLayout(cols=len(buttons_grid_layout[0]))
@@ -116,12 +117,13 @@ class MainApp(App):
 
     return root
 
-  def build(self):
-    self.pump_pin=5
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(self.pump_pin,GPIO.OUT)
-    GPIO.output(self.pump_pin,GPIO.LOW)
+  def prepare_robot(self,dt):
+    r.calibrate()
+    r.go_to_pose([400,0,150,180,0])
     Clock.schedule_once(self.move_robot_if_necessary,0)
+
+  def build(self):
+    Clock.schedule_once(self.prepare_robot,5)
     return self.ui()
 
 def find_index(list,value):
@@ -161,11 +163,14 @@ def main():
   Window.bind(on_joy_button_down=joystick_button_down)
   Window.bind(on_joy_button_up=joystick_button_up)
 
+  GPIO.setmode(GPIO.BCM)
+  GPIO.setup(pump_pin,GPIO.OUT)
+  GPIO.output(pump_pin,GPIO.LOW)
+
   r=Robot()
   r.reset()
-  r.calibrate()
   r.set_joint_speed(50)
-  r.go_to_pose([400,0,150,180,0])
+
   MainApp().run()
 
   r.go_to_foetus_pos()
