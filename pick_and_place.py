@@ -1,0 +1,74 @@
+import RPi.GPIO as GPIO
+import time
+import math
+
+def probe_at_defined_speed(r,speed,xy_coord,roll):
+  r.set_joint_speed(speed)
+  a=xy_coord+[-110,180,roll]
+  return r.linear_probe(a)
+
+def go_at_defined_speed(r,speed,xy_coord,z,roll):
+  r.set_joint_speed(speed)
+  r.go_to_pose(xy_coord+[z,180,roll])
+
+def place_sheet(pump_pin,r,default_speed,xy_coord,safe_height,roll,sensor_pin):
+  GPIO.output(pump_pin,GPIO.LOW)
+  go_at_defined_speed(r,default_speed,xy_coord,safe_height,roll)
+  go_at_defined_speed(r,default_speed,xy_coord,safe_height-50,roll)
+  #go_at_defined_speed(r,default_speed,xy_coord,safe_height,roll)
+  #probe_at_defined_speed(r,default_speed,xy_coord,roll)
+  #stack_height=r.get_tool_pose()[2]
+  #go_at_defined_speed(r,default_speed,xy_coord,max(safe_height,stack_height+50),roll)
+ 
+  dt=0.1
+  i=0
+  sheet_dropped=GPIO.input(sensor_pin)
+  while(not sheet_dropped and i*dt<10):
+    time.sleep(0.1)
+    i+=1
+    sheet_dropped=GPIO.input(sensor_pin)
+
+  go_at_defined_speed(r,default_speed,xy_coord,safe_height,roll)
+
+  return sheet_dropped
+
+def norm(v):
+  square_norm=0.0
+  for e in v:
+    square_norm+=e**2
+  return math.sqrt(square_norm)
+
+def pick_sheet(r,default_speed,xy_coord,safe_height,roll,pump_pin,sensor_pin):
+  go_at_defined_speed(r,default_speed,xy_coord,safe_height,roll)
+  GPIO.output(pump_pin,GPIO.HIGH)
+
+  success=False
+  number_of_trials=0
+  while(not success and number_of_trials<5):
+    probe_at_defined_speed(r,6000/norm(xy_coord),xy_coord,roll)
+    #r.jog([0,0,-5,0,0])
+    time.sleep(number_of_trials)
+    r.set_joint_speed(default_speed)
+    for i in range(100):
+      r.jog([0,0,1,0,0])
+    
+    success=not GPIO.input(sensor_pin)
+    if(success):
+      #GPIO.output(pump_pin,GPIO.LOW)
+      r.linear_move_to_pose(xy_coord+[safe_height,180,roll])
+      #go_at_defined_speed(r,default_speed,xy_coord,safe_height,roll)
+      success=not GPIO.input(sensor_pin)
+    number_of_trials+=1
+
+  go_at_defined_speed(r,default_speed,xy_coord,safe_height,roll)
+
+  return success
+
+def pick_and_place_sheet(r,default_speed,pick_xy_roll,pump_pin,sensor_pin,place_xy_roll):
+  safe_height=45
+  success=pick_sheet(r,default_speed,pick_xy_roll[0:2],safe_height,pick_xy_roll[2],pump_pin,sensor_pin)
+  
+  if(success):
+    success=place_sheet(pump_pin,r,default_speed,place_xy_roll[0:2],safe_height,place_xy_roll[2],sensor_pin)
+
+  return success
