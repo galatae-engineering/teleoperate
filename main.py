@@ -18,7 +18,7 @@ from shuffle_sheets import *
 r=None
 
 joystick_axes_ids=[1,0,4]
-joystick_buttons_ids=[13,14,15,16]
+joystick_buttons_ids=[13,14,15,16,0,2]
 joystick_state=[0]*(len(joystick_axes_ids)+len(joystick_buttons_ids))
 pump_pin=5
 
@@ -99,6 +99,11 @@ class MainApp(App):
     if pose != [0,0,0,0,0]:
       r.jog(pose)
 
+    if joystick_state[len(joystick_axes_ids)+len(joystick_buttons_ids)-1] == True:
+      GPIO.output(pump_pin,GPIO.LOW)
+    elif joystick_state[len(joystick_axes_ids)+len(joystick_buttons_ids)-2] == True:
+      GPIO.output(pump_pin,GPIO.HIGH)
+
     Clock.schedule_once(self.move_robot_if_necessary,0)
     
   def ui(self):
@@ -117,7 +122,7 @@ class MainApp(App):
     self.button_widgets[11].bind(on_press=stop_pump)
     self.button_widgets[12].bind(on_press=shuffle_sheets)
     
-    buttons_grid_layout=[[None,0,None,None,4,None,None,7,None,None,10],[2,None,3,None,None,None,8,None,9,None,12],[None,1,None,None,5,None,None,6,None,None,11]]
+    buttons_grid_layout=[[None,0,None,None,4,None,None,7,None,None,10],[2,None,3,None,None,None,8,None,9,None,None],[None,1,None,None,5,None,None,6,None,None,11]]
     buttons_grid_widget = GridLayout(cols=len(buttons_grid_layout[0]))
 
     for i in range(len(buttons_grid_layout)):
