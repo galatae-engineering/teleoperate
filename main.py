@@ -7,6 +7,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, StringProperty, ListProperty
 from kivy.clock import Clock
@@ -51,24 +52,6 @@ def get_pose_from_joystick_state():
 
   return pose
 
-def shuffle_sheets(instance):
-  default_speed=50
-
-  all_stacks_xy_rolls=get_all_stacks_xy_roll()
-  print(all_stacks_xy_rolls)
-
-  sensor_pin=6
-  GPIO.setup(sensor_pin,GPIO.IN)
-
-  print(datetime.now())
-
-  make_notebooks(all_stacks_xy_rolls,pump_pin,r,default_speed,sensor_pin)
-
-  GPIO.output(pump_pin,GPIO.LOW)
-  r.set_joint_speed(default_speed)
-  r.go_to_foetus_pos()
-  r.disable_motors()
-
 class MainApp(App):
   def get_ui_buttons_state(self):
     buttons_state=[False]*len(self.button_widgets)
@@ -97,7 +80,15 @@ class MainApp(App):
       pose=self.get_pose_from_buttons()
 
     if pose != [0,0,0,0,0]:
-      r.jog(pose)
+      try:
+        r.jog(pose)
+      except:
+        pass
+
+      a=str(r.get_tool_pose())
+      self.pos_widget.text=a
+
+      print(a)
 
     if joystick_state[len(joystick_axes_ids)+len(joystick_buttons_ids)-1] == True:
       GPIO.output(pump_pin,GPIO.LOW)
@@ -113,14 +104,13 @@ class MainApp(App):
     except:
       root.add_widget(Label(text="Camera not detected."))
     
-    button_names=["forward","backward","left","right","up","down","pitch +","pitch -","roll +","roll -","start pump","stop pump","shuffle"]    
+    button_names=["forward","backward","left","right","up","down","pitch +","pitch -","roll +","roll -","open gripper","close gripper"]    
     self.button_widgets=[]
     for i in range(len(button_names)):
       self.button_widgets.append(Button(text=button_names[i]))
-    
+
     self.button_widgets[10].bind(on_press=start_pump)
     self.button_widgets[11].bind(on_press=stop_pump)
-    self.button_widgets[12].bind(on_press=shuffle_sheets)
     
     buttons_grid_layout=[[None,0,None,None,4,None,None,7,None,None,10],[2,None,3,None,None,None,8,None,9,None,None],[None,1,None,None,5,None,None,6,None,None,11]]
     buttons_grid_widget = GridLayout(cols=len(buttons_grid_layout[0]))
@@ -138,10 +128,17 @@ class MainApp(App):
         
     root.add_widget(buttons_grid_widget)
 
+    pos_box=BoxLayout(orientation="horizontal",size_hint_y=None,height=70)
+    
+    pos_box.add_widget(Label(text="Tool pose :",halign="right"))
+    self.pos_widget=TextInput(text="[0,0,0,0,0]",halign="left")
+    pos_box.add_widget(self.pos_widget)
+    root.add_widget(pos_box)
+
     return root
 
   def prepare_robot(self,dt):
-    r.calibrate()
+    #r.home()
     r.go_to_pose([400,0,150,180,0])
     Clock.schedule_once(self.move_robot_if_necessary,0)
 
