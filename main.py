@@ -84,10 +84,7 @@ class MainApp(App):
       except:
         pass
 
-      a=str(r.get_tool_pose())
-      self.pos_widget.text=a
-
-      print(a)
+      self.pos_widget.text=str(r.get_tool_pose())
 
     if joystick_state[len(joystick_axes_ids)+len(joystick_buttons_ids)-1] == True:
       GPIO.output(pump_pin,GPIO.LOW)
@@ -193,7 +190,8 @@ def main():
 
   MainApp().run()
 
-  r.go_to_foetus_pos()
+  GPIO.output(pump_pin,GPIO.LOW)
+  r.go_to_sleep_pos()
   r.disable_motors()
 
 if __name__ == '__main__':
