@@ -14,7 +14,6 @@ from kivy.clock import Clock
 from kivy.uix.camera import Camera
 from kivy.core.window import Window
 import RPi.GPIO as GPIO
-from shuffle_sheets import *
 
 r=None
 
@@ -98,6 +97,7 @@ class MainApp(App):
     Clock.schedule_once(self.move_robot_if_necessary,0)
     
   def ui(self):
+    self.start_pos=[400,0,150,180,0]
     root=BoxLayout(orientation="vertical")
     try:
       root.add_widget(Camera(play=True))
@@ -131,15 +131,15 @@ class MainApp(App):
     pos_box=BoxLayout(orientation="horizontal",size_hint_y=None,height=70)
     
     pos_box.add_widget(Label(text="Tool pose :",halign="right"))
-    self.pos_widget=TextInput(text="[0,0,0,0,0]",halign="left")
+    self.pos_widget=TextInput(text=str(self.start_pos),halign="left")
     pos_box.add_widget(self.pos_widget)
     root.add_widget(pos_box)
 
     return root
 
   def prepare_robot(self,dt):
-    #r.home()
-    r.go_to_pose([400,0,150,180,0])
+    r.home()
+    r.go_to_pose(self.start_pos)
     Clock.schedule_once(self.move_robot_if_necessary,0)
 
   def build(self):
